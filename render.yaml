@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: django-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn ecommerce_backend.wsgi:application
+    envVars:
+      - key: DATABASE_URL
+        value: <your-database-url>

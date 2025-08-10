@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-+*g@8k%if1ol@hd)@ztpaqm67)-rwzzku23n6)t6pn#c_bhg7&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['alx-ecommerce-nexus.onrender.com']
 
 
 # Application definition
@@ -80,11 +80,7 @@ WSGI_APPLICATION = 'ecommerce_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DATABASE_NAME'),
-        'USER': os.getenv('DATABASE_USER'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-        'HOST': os.getenv('DATABASE_HOST'),
-        'PORT': os.getenv('DATABASE_PORT'),
+        'NAME': os.environ.get('DATABASE_URL'),
     }
 }
 
