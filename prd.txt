@@ -1,0 +1,324 @@
+Goal (one-sentence)
+Expand this backend into a production-grade, RESTful API for a marketplace/e-commerce platform (Jumia-like) supporting sellers and buyers, robust product catalog (variants, SKUs), orders, payments, inventory, reviews, promotions, and a secure, well-documented API consumable by a TypeScript SPA or mobile apps.
+
+📌 Deliverables (concrete)
+Complete Django app(s) implementing models, serializers, views, and URL routes for the domain below.
+
+API docs (OpenAPI/Swagger + ReDoc) fully documenting endpoints and request/response schemas.
+
+DB migrations and a seed/fixture script to generate realistic demo data (categories, brands, products with variants, users, sellers, orders, reviews).
+
+Postman/Insomnia collection (or OpenAPI clients) with example requests for major flows.
+
+Automated tests: unit tests for serializers and models, integration tests for key endpoints and flows (cart → checkout → order → payment), and basic permission tests.
+
+CI pipeline (GitHub Actions or similar) that runs tests, linting, and builds migrations.
+
+Deployment guidance doc: environment variables, S3 setup, CDN, and recommended host (e.g. Render/Heroku/AWS ECS).
+
+Performance & security checklist applied (indices, throttling, input validation, file upload limits, CORS, CSP, etc.).
+
+🔧 Non-Functional Requirements
+API style: RESTful (JSON), consistent status codes, structured error format. Use token-based auth (JWT access + refresh) for SPA; keep option for session auth.
+
+Pagination: cursor or page (default page size 20) with links for next/previous.
+
+Filtering & search: field filtering + full text search on name, description (Postgres full-text or Elasticsearch if needed).
+
+Rate limiting / throttling: per-IP and per-user limits (configurable).
+
+Media: product images stored in S3 (or equivalent), signed URLs if private; CDNs in front. Support image variants/sizes and automatic thumbnailing (Cloudinary or ImageKit optional).
+
+Indexes: add DB indexes on fields used in filters/sorts (price, created_at, category_id, sku).
+
+Transactions: order creation and stock decrement must be atomic.
+
+Idempotency: for payment/order creation endpoints.
+
+Security: input validation, limit upload size, auth on sensitive endpoints, permissions (seller vs admin vs customer). Use HTTPS in deployment.
+
+Observability: basic logging, error tracking (Sentry), and metrics (Prometheus/Grafana recommended).
+
+Testing coverage goal: ≥ 70% for backend logic and endpoints.
+
+🧩 Data model (entities + cardinality)
+Describe each model and relationship clearly so the engineer implements proper foreign keys, indices, and related_name values.
+
+User (1)
+
+roles/flags: is_customer, is_seller, is_staff
+
+Cardinality: User 1 — many Orders; User 1 — many Reviews
+
+Shop / SellerProfile (1)
+
+belongs to one User (1:1) that is the seller account
+
+Shop has many Products (1:N)
+
+Shop has many Orders (via products or sales)
+
+Cardinality: User 1 <-> 1 SellerProfile; SellerProfile 1 — many Products
+
+Category (hierarchical)
+
+fields: id, name, slug, parent (nullable FK to Category), description
+
+Cardinality: Category 1 — many Subcategories (parent-child); Product N — 1 Category (or allow ManyToMany for multi-category products if you choose)
+
+Brand
+
+1 — many Products
+
+Product (logical product)
+
+fields: id, name, description, brand(FK), categories (M2M or FK), is_active
+
+Cardinality: Product 1 — many ProductVariant / SKUs
+
+ProductVariant (SKU) (physical item)
+
+fields: sku (unique), product(FK), attributes (json or related Attr table), price, cost, stock, weight, length,width,height, barcode
+
+Cardinality: Product 1 — many ProductVariant
+
+ProductImage
+
+fields: variant (FK) or product(FK), image_url, alt_text, order
+
+Cardinality: ProductVariant/Product 1 — many ProductImage
+
+Attribute & AttributeOption (optional)
+
+for variant attributes like color/size
+
+Cardinality: Attribute 1 — many AttributeOptions; ProductVariant N — N AttributeOption (M2M via SKU attributes)
+
+Inventory / StockTransaction
+
+records adjustments (increase, decrease, reserve) for auditability
+
+Cardinality: ProductVariant 1 — many StockTransactions
+
+Cart & CartItem (session or user)
+
+Cart 1 — many CartItems; CartItem FK → ProductVariant
+
+Order & OrderItem
+
+Order fields: id, user(FK), shop(FK optional), total_amount, tax, shipping_amount, status (enum), payment_status
+
+OrderItem fields: order(FK), product_variant(FK), quantity, unit_price, total_price
+
+Cardinality: User 1 — many Orders; Order 1 — many OrderItems
+
+PaymentTransaction
+
+stores provider id, status, amount, raw_response
+
+Cardinality: Order 1 — many PaymentTransactions (or 1:1 with latest)
+
+Shipment / Fulfillment
+
+fields: order, tracking_number, carrier, status, shipped_at, delivered_at
+
+Cardinality: Order 1 — many Shipments (split shipments supported)
+
+Return / RefundRequest
+
+linked to OrderItem(s)
+
+Cardinality: OrderItem 1 — many Returns
+
+Review
+
+already exists: Review 1 — Product and User 1 — Review (unique per product/user enforced)
+
+Promotion / Coupon
+
+rules: percentage/fixed, start/end, applicable products/categories, usage_limit_per_user
+
+AuditLog (optional)
+
+model to store critical actions (price changes, stock adjustments)
+
+🔁 API surface (high-level endpoints — no code)
+Group by resource. Use /api/v1/ prefix. All responses JSON. Include examples for major flows.
+
+Auth & Users
+POST /api/v1/auth/register/ — register (buyer/seller flag).
+
+POST /api/v1/auth/login/ — returns {access, refresh} JWT.
+
+POST /api/v1/auth/token/refresh/
+
+GET /api/v1/users/me/ — profile.
+
+PUT /api/v1/users/me/ — update.
+
+POST /api/v1/auth/password-reset/ (email flow)
+
+Seller / Shop
+GET /api/v1/shops/ — list shops (searchable).
+
+POST /api/v1/shops/ — create shop (seller only).
+
+GET /api/v1/shops/{id}/ — details.
+
+Catalog
+GET /api/v1/categories/ — tree listing (with child categories).
+
+GET /api/v1/brands/
+
+GET /api/v1/products/ — list with filters: ?category=, ?brand=, ?min_price=, ?max_price=, ?q=, ?is_active= and ordering. Pagination.
+
+POST /api/v1/products/ — create product (seller/admin).
+
+GET /api/v1/products/{id}/ — product details (includes variants, images, average_rating).
+
+GET /api/v1/products/{id}/variants/ — list SKUs.
+
+POST /api/v1/products/{id}/images/ — upload image for product/variant.
+
+GET /api/v1/products/{id}/reviews/ — list reviews.
+
+POST /api/v1/products/{id}/reviews/ — create review (auth required).
+
+Inventory & SKUs
+GET /api/v1/skus/ — list SKUs with sku, stock and price.
+
+PATCH /api/v1/skus/{sku}/stock/ — adjust stock (seller/admin).
+
+GET /api/v1/inventory/transactions/ — audit.
+
+Cart & Checkout
+GET /api/v1/cart/ — get active cart.
+
+POST /api/v1/cart/items/ — add item (sku, qty).
+
+PATCH /api/v1/cart/items/{id}/ — update qty.
+
+DELETE /api/v1/cart/items/{id}/
+
+POST /api/v1/checkout/ — initiate checkout (calculates totals, reserves stock). Returns order draft id.
+
+POST /api/v1/checkout/{draft_id}/pay/ — submit payment (idempotent).
+
+GET /api/v1/orders/{id}/ — order details.
+
+Orders, Shipping & Returns
+GET /api/v1/orders/ — list user orders (sellers see sales).
+
+POST /api/v1/orders/{id}/cancel/ — cancel if eligible.
+
+POST /api/v1/orders/{id}/ship/ — create shipment (seller/admin).
+
+POST /api/v1/orders/{id}/returns/ — create return request.
+
+Payments
+POST /api/v1/payments/initiate/ — redirect or token for provider (Paystack, Stripe, Flutterwave — keep provider adapter pattern).
+
+POST /api/v1/payments/webhook/ — provider webhook (verify signature).
+
+Admin
+Bulk upload endpoints (CSV/Excel) for product catalog.
+
+Management endpoints for promotions, categories, users.
+
+Misc
+GET /api/v1/stats/products/ — (admin) metrics.
+
+GET /api/v1/search/ — unified search endpoint.
+🔐 Permissions & Roles
+Anonymous: view public catalogs.
+
+Customer: cart, checkout, reviews, profile, orders.
+
+Seller: create/edit products, manage inventory, view sales/orders for their shop, shipping updates.
+
+Staff/Admin: manage everything, create promotions, user management.
+
+Implement object-level permissions so sellers can only modify products of their shop.
+
+⚙️ Implementation & design notes (high yield)
+Use Django REST Framework with ViewSets and Routers for consistency; use serializers with explicit read_only/write_only fields.
+
+Use select_related & prefetch_related to avoid N+1 on product lists (product→brand, variant→images, variant→stock).
+
+Use DB transactions (atomic) when creating orders and adjusting stock. Use select_for_update() when decrementing stock to avoid race conditions.
+
+Use optimistic locking or reservation table if you want multi-step checkout with stock reservation.
+
+Support idempotency-key header on payment/order endpoints.
+
+For search, start with Postgres full-text search + trigram; allow plugging Elasticsearch for scale.
+
+Throttle critical endpoints (checkout, login) and use CAPTCHA on registration if necessary.
+
+For media, implement direct S3 uploads from client with pre-signed URLs to avoid proxying media through Django.
+
+🧪 Testing / QA checklist
+Unit tests for model constraints & serializers (unique SKU, review unique per user/product).
+
+Integration tests for cart → checkout → payment flow, including a failed payment case and stock rollback.
+
+Permission tests for seller vs customer actions.
+
+API contract tests against OpenAPI schema.
+
+Load test a catalog listing endpoint and checkout concurrency to validate stock locking.
+
+🔁 Migration & seed data
+Provide a management command manage.py seed_demo_data --count-products=500 --variants-per-product=3 that uses Faker to create realistic dataset (images can be placeholders).
+
+Include migration plan for adding variants/sku if current production DB only has Product.
+
+✅ Acceptance criteria (what 'done' looks like)
+All endpoints in the deliverable list exist and are documented with request/response examples.
+
+Demo seed data loads without errors.
+
+Checkout flow works end-to-end in the sandbox (create order → pay via mocked provider → order state becomes paid → stock updated).
+
+Tests pass in CI.
+
+Admin can upload/update catalog and images.
+
+Frontend TypeScript team can implement the storefront using only the provided API docs and examples.
+
+Optional / stretch suggestions (nice-to-have)
+Multi-vendor payout/split settlements.
+
+Seller ratings & analytics dashboard.
+
+Variant-level promotions.
+
+Background workers (Celery + Redis) for sending emails, processing images, analytics.
+
+GraphQL gateway for flexible frontend queries (optional).
+Documentation requirements (Swagger / OpenAPI)
+Must use drf-yasg (or drf-spectacular if preferred) to generate complete OpenAPI 3 documentation.
+
+Every endpoint must have:
+
+Summary & description explaining purpose and usage.
+
+Tags grouping related endpoints (Auth, Catalog, Orders, Payments, etc.).
+
+Parameter descriptions (query params, path params, request body schema).
+
+Response schemas for success and error states with example JSON.
+
+Authentication requirements (JWT bearer token) indicated in schema.
+
+For list endpoints, include pagination schema and examples.
+
+Schemas for all serializers should be automatically discoverable in Swagger UI.
+
+Add operation_id and ref_name where needed to avoid schema collisions.
+
+Serve Swagger UI at /swagger/ and ReDoc at /redoc/ in dev/staging.
+
+Ensure docs auto-update as serializers/views change (use @swagger_auto_schema where custom actions are used).
+
+Include end-to-end flow examples in Swagger — e.g., register → login → add to cart → checkout → payment.
