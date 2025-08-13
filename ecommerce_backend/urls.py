@@ -44,7 +44,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/admin/', permanent=True)),  # Redirect to admin instead of Swagger
+    path('', RedirectView.as_view(url='/swagger/', permanent=True)),  # Redirect to Swagger documentation
     path('admin/', admin.site.urls),
     path('api/', include('products.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
