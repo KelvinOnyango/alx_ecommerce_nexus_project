@@ -34,12 +34,13 @@ class ProductSerializer(serializers.ModelSerializer):
     )
     reviews = ProductReviewSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
+    image_url = serializers.ImageField(source='image', read_only=True)
 
     class Meta:
         model = Product
         fields = [
             'id', 'name', 'description', 'price', 'stock', 
-            'category', 'category_id', 'image', 'is_active',
+            'category', 'category_id', 'image', 'image_url', 'is_active',
             'created_at', 'updated_at', 'reviews', 'average_rating'
         ]
         read_only_fields = ['created_at', 'updated_at']

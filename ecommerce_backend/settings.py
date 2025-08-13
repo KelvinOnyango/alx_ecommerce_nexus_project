@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-+*g@8k%if1ol@hd)@ztpaqm67)-rwzzku23n6)t6pn#c_bhg7&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['alx-ecommerce-nexus.onrender.com']
+ALLOWED_HOSTS = ['alx-ecommerce-nexus.onrender.com', 'alx-ecommerce-nexus-project-5.onrender.com', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -80,7 +80,12 @@ WSGI_APPLICATION = 'ecommerce_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DATABASE_URL'),
+        'NAME': 'kelvinonyango',
+        'USER': 'kelvinonyango_user',
+        'PASSWORD': 'Il8JeC6yLaEZzSVxiB1tDMC24qTmkf0J',
+        'HOST': 'dpg-d2ci67ggjchc7385amb0-a.oregon-postgres.render.com',
+        'PORT': '5432',
+        'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
     }
 }
 
@@ -145,10 +150,10 @@ CORS_ALLOWED_ORIGINS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ),
 }
 

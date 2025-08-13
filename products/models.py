@@ -25,6 +25,7 @@ class Product(models.Model):
     stock = models.PositiveIntegerField(default=0)
     category = models.ForeignKey(Category, related_name='products', on_delete=models.SET_NULL, null=True)
     image = models.ImageField(upload_to='products/', null=True, blank=True)
+    image_url = models.URLField(max_length=500, null=True, blank=True)  # Cloudinary image URL
     created_at = models.DateTimeField(auto_now_add=True)  # Removed default to avoid conflict
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)

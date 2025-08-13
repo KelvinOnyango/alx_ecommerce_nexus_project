@@ -1,0 +1,244 @@
+# API Endpoints Documentation
+
+## Base URL
+- **Local Development**: `http://localhost:8000/`
+- **Production**: `https://alx-ecommerce-nexus.onrender.com/`
+
+---
+
+## Authentication Endpoints
+### Register a New User
+- **URL**: `/api/auth/register/`
+- **Method**: `POST`
+- **Request Body**:
+  ```json
+  {
+    "username": "string",
+    "email": "string",
+    "password": "string"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "id": "integer",
+    "username": "string",
+    "email": "string"
+  }
+  ```
+
+### Login and Obtain JWT Tokens
+- **URL**: `/api/auth/login/`
+- **Method**: `POST`
+- **Request Body**:
+  ```json
+  {
+    "username": "string",
+    "password": "string"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "access": "string",
+    "refresh": "string"
+  }
+  ```
+
+---
+
+## Product Endpoints
+### List All Products
+- **URL**: `/api/products/`
+- **Method**: `GET`
+- **Response**:
+  ```json
+  [
+    {
+      "id": "integer",
+      "name": "string",
+      "price": "decimal",
+      "category": "string"
+    }
+  ]
+  ```
+
+### Create a New Product
+- **URL**: `/api/products/`
+- **Method**: `POST`
+- **Request Body**:
+  ```json
+  {
+    "name": "string",
+    "price": "decimal",
+    "category": "integer"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "id": "integer",
+    "name": "string",
+    "price": "decimal",
+    "category": "string"
+  }
+  ```
+
+### Retrieve, Update, or Delete a Product
+- **URL**: `/api/products/<id>/`
+- **Method**: `GET`, `PATCH`, `DELETE`
+- **Response**:
+  ```json
+  {
+    "id": "integer",
+    "name": "string",
+    "price": "decimal",
+    "category": "string"
+  }
+  ```
+
+---
+
+## Cart Endpoints
+### Retrieve the User's Cart
+- **URL**: `/api/cart/`
+- **Method**: `GET`
+- **Response**:
+  ```json
+  {
+    "id": "integer",
+    "user": "integer",
+    "items": [
+      {
+        "product": "string",
+        "quantity": "integer"
+      }
+    ]
+  }
+  ```
+
+### Add Items to the Cart
+- **URL**: `/api/cart/`
+- **Method**: `POST`
+- **Request Body**:
+  ```json
+  {
+    "product_id": "integer",
+    "quantity": "integer"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "id": "integer",
+    "product": "string",
+    "quantity": "integer"
+  }
+  ```
+
+### Update Cart Items
+- **URL**: `/api/cart/`
+- **Method**: `PATCH`
+- **Request Body**:
+  ```json
+  {
+    "product_id": "integer",
+    "quantity": "integer"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "id": "integer",
+    "product": "string",
+    "quantity": "integer"
+  }
+  ```
+
+### Remove Items from the Cart
+- **URL**: `/api/cart/`
+- **Method**: `DELETE`
+- **Request Body**:
+  ```json
+  {
+    "product_id": "integer"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "message": "Item removed successfully."
+  }
+  ```
+
+---
+
+## Order Endpoints
+### List All Orders
+- **URL**: `/api/orders/`
+- **Method**: `GET`
+- **Response**:
+  ```json
+  [
+    {
+      "id": "integer",
+      "user": "integer",
+      "status": "string",
+      "created_at": "datetime"
+    }
+  ]
+  ```
+
+### Create a New Order
+- **URL**: `/api/orders/`
+- **Method**: `POST`
+- **Request Body**:
+  ```json
+  {
+    "items": [
+      {
+        "product_id": "integer",
+        "quantity": "integer"
+      }
+    ]
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "id": "integer",
+    "user": "integer",
+    "status": "string",
+    "created_at": "datetime"
+  }
+  ```
+
+---
+
+## Metrics and Search Endpoints
+### Retrieve Product Metrics
+- **URL**: `/api/stats/products/`
+- **Method**: `GET`
+- **Response**:
+  ```json
+  {
+    "total_products": "integer",
+    "total_sales": "decimal"
+  }
+  ```
+
+### Perform a Unified Search
+- **URL**: `/api/search/`
+- **Method**: `GET`
+- **Query Parameters**:
+  - `q`: Search query string.
+- **Response**:
+  ```json
+  [
+    {
+      "type": "string",
+      "name": "string",
+      "details": "string"
+    }
+  ]
+  ```
